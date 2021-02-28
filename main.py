@@ -14,7 +14,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import pickle
-from datetime import datetime
+from datetime import datetime, timedelta
 import numpy as np
 
 from importlib import reload  
@@ -28,16 +28,14 @@ file = open('./data/test_data.pkl', 'rb')
 df = pickle.load(file)
 file.close()
 
-# Create report
-report = open('report.txt','w')
-report.write('Data analysis results \n')
-report.close()
 
 # Delete incorrect rows
 df, dropped = utils.clear_timestamps(df)
 
+
 # Transform timestamps to a series of integers for performing outlier analysis
 time_ints = utils.tstamps_to_ints(df)
+
 
 # Find outliers and remove from values
 values = np.array(df['Values'])
@@ -46,7 +44,12 @@ outliers, values_cleared = utils.get_outliers(time_ints, values)
 
 # Get global tendency and find relevant points
 filtered_values, local_mins, local_maxs = utils.filter_values(values_cleared, 0.005)
-df['Trend'] = filtered_values
+prediction = utils.sillyPredict(filtered_values)
+# df['Trend'] = filtered_values
+extended_times = list(df["Timestamps"])
+for k in range(len(prediction)-len(df["Timestamps"])):
+    extended_times.append(extended_times[-1]+timedelta(seconds=60))
+
 
 # Periodicity analysis
 auto_correlation, period = utils.get_period(filtered_values)
@@ -86,7 +89,9 @@ for ind in range(len(df)):
 app.layout = html.Div([
     html.H1(children='Data Visualization'),
     html.Div(children='''
-        Analysis of unknown data.
+        Analysis of unknown data. The datapoints considered to be outliers are
+        highlighted and the overall trend is shown, along with a predicttion
+        for the next two hours.
     '''),
     dcc.Graph(id='graph-with-slider'),
         dcc.RangeSlider(
@@ -130,7 +135,9 @@ def update_figure(date):
     fig.add_trace(go.Scatter(x=filtered_df["Timestamps"][filtered_outliers], y=[values[k] for k in filtered_outliers], 
                               mode='markers', name='Outliers'))
     
-    fig.add_trace(go.Scatter(x=filtered_df["Timestamps"], y=filtered_df["Trend"], 
+    # fig.add_trace(go.Scatter(x=filtered_df["Timestamps"], y=filtered_df["Trend"], 
+    #                           mode='lines', name='Trend'))
+    fig.add_trace(go.Scatter(x=extended_times, y=prediction, 
                               mode='lines', name='Trend'))
     
     fig.update_layout()
