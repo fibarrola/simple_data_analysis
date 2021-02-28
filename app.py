@@ -1,0 +1,155 @@
+# -*- coding: utf-8 -*-
+"""
+Spyder Editor
+
+This is a temporary script file.
+"""
+
+
+import dash
+import dash_core_components as dcc
+import dash_html_components as html
+from dash.dependencies import Input, Output
+import plotly.graph_objects as go
+import pickle
+from datetime import datetime, timedelta
+import numpy as np
+from src import utils
+
+
+
+# Load data from file
+file = open('./data/test_data.pkl', 'rb')
+df = pickle.load(file)
+file.close()
+
+
+# Delete incorrect rows
+df, dropped = utils.clear_timestamps(df)
+
+
+# Transform timestamps to a series of integers for performing outlier analysis
+time_ints = utils.tstamps_to_ints(df)
+
+
+# Find outliers and remove from values
+values = np.array(df['Values'])
+outliers, values_cleared = utils.get_outliers(time_ints, values)
+
+
+# Get global tendency and find relevant points
+filtered_values, local_mins, local_maxs = utils.filter_values(values_cleared, 0.005)
+prediction = utils.sillyPredict(filtered_values)
+# df['Trend'] = filtered_values
+extended_times = list(df["Timestamps"])
+for k in range(len(prediction)-len(df["Timestamps"])):
+    extended_times.append(extended_times[-1]+timedelta(seconds=60))
+time_ints_extended = np.concatenate((time_ints, np.zeros(len(extended_times)-len(time_ints))))
+for k in range(len(time_ints),len(time_ints_extended)):
+    time_ints_extended[k] = time_ints_extended[k-1]+60 
+
+
+# Periodicity analysis
+auto_correlation, period = utils.get_period(filtered_values)
+period = df['Timestamps'][period]-df['Timestamps'][0]
+times = [(x-df["Timestamps"][0]).days*24+(x-df["Timestamps"][0]).seconds/3600 for x in df['Timestamps']]
+corr_fig = go.Figure()
+corr_fig.add_trace(go.Scatter(x=times, y=auto_correlation, name='Autocorrelation'))
+corr_fig.update_layout(title='Autocorrelation')
+
+
+# Text to be displayed
+markdown_text = '''### Data Analysis \n
+Data Check: 
+'''+str(len(dropped))+''' wrongly formatted datapoints were found within the
+data and will be removed from the analysis.\n\n
+Outliers:
+'''+str(len(outliers))+''' suspicious data points were detected and will be
+treated as outliers. \n\n
+Points of interest:
+'''+str(len(local_mins))+''' local minima and '''+str(len(local_maxs))+''' 
+local maxima were found within the data. \n\n
+Periodicity: 
+The data is observed to have a periodicity of about '''+str(period//60)+''' hours.
+'''
+
+
+# Generate graphics
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+
+my_marks = {}
+for ind in range(len(df)):
+    tiempo = datetime.strftime(df['Timestamps'][ind],'%H%M')
+    if tiempo=='0000' or tiempo=='1200':
+        my_marks[time_ints[ind]] = datetime.strftime(df['Timestamps'][ind],'%Y-%m-%d, %H:%M')
+             
+app.layout = html.Div([
+    html.H1(children='Data Visualization'),
+    html.Div(children='''
+        Analysis of unknown data. The datapoints considered to be outliers are
+        highlighted and the overall trend is shown, along with a prediction
+        for the next two hours.
+    '''),
+    dcc.Graph(id='graph-with-slider'),
+        dcc.RangeSlider(
+            id='year-slider',
+            min=time_ints[0],
+            max=time_ints_extended[-1],
+            marks = my_marks,
+            step = 600,
+            value=[time_ints[0],time_ints_extended[-1]]
+        ),
+    dcc.Graph(id='autocorrelation',
+        figure = corr_fig        
+        ),
+    dcc.Markdown(children=markdown_text)
+    ])  
+             
+@app.callback(
+    Output('graph-with-slider', 'figure'),
+    Input('year-slider', 'value'))
+
+def update_figure(date):
+    
+    # Filter numbers out of range
+    to_drop = []
+    ind0 = 0
+    ind1 = len(df)
+    ind2 = len(extended_times)
+    for ind in range(len(time_ints)):
+        if time_ints[ind]>=date[0]:
+            ind0 = ind
+            break
+    for ind in range(len(time_ints)):
+        if time_ints[ind]>=date[1]:
+            ind1 = ind
+            break
+    for ind in range(len(time_ints_extended)):
+        if time_ints_extended[ind]>=date[1]:
+            ind2 = ind
+            break
+    
+    filtered_outliers = []
+    for x in outliers:
+        if date[0]<time_ints[x]<date[1]:
+            filtered_outliers.append(x)
+
+    fig = go.Figure()
+    fig.update_layout(title='Visualization of data from file')
+    fig.add_trace(go.Bar(x=df["Timestamps"][ind0:ind1], y=df["Values"][ind0:ind1] , 
+                          name='Values'))
+    
+    fig.add_trace(go.Scatter(x=df["Timestamps"][filtered_outliers], y=[values[k] for k in filtered_outliers], 
+                              mode='markers', name='Outliers'))
+    
+    fig.add_trace(go.Scatter(x=extended_times[ind0:ind2], y=prediction[ind0:ind2], 
+                              mode='lines', name='Trend'))
+    
+    fig.update_layout()
+
+    return fig
+
+if __name__ == '__main__':
+    app.run_server(debug=True)
+    # app.run_server(debug=False)
