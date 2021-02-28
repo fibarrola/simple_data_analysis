@@ -1,4 +1,4 @@
-# A simple web app for Data Visualization
+# A simple Dash web app for Data Visualization
 
 Analysis of a time series that contains the following steps:
 - Data Check: Check for uncorrectly formatted datapoints.
