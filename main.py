@@ -90,7 +90,7 @@ app.layout = html.Div([
     html.H1(children='Data Visualization'),
     html.Div(children='''
         Analysis of unknown data. The datapoints considered to be outliers are
-        highlighted and the overall trend is shown, along with a predicttion
+        highlighted and the overall trend is shown, along with a prediction
         for the next two hours.
     '''),
     dcc.Graph(id='graph-with-slider'),
