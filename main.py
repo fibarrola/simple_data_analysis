@@ -10,17 +10,11 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
-import plotly.express as px
 import plotly.graph_objects as go
-import pandas as pd
 import pickle
 from datetime import datetime, timedelta
 import numpy as np
-
-from importlib import reload  
 from src import utils
-
-import matplotlib.pyplot as plt
 
 
 # Load data from file
