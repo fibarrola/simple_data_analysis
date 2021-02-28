@@ -97,7 +97,20 @@ def get_period(filtered_values):
     
     return auto_correlation, period
     
+
+def sillyPredict(filtered_values, N=120):
+    # Cut off the last part, as it is proclive to misstakes
+    prediction = filtered_values[:-100]
     
+    for k in range((N+100)//5):
+        last = prediction[-50:]
+        xx = np.array(range(50))
+        coefs = np.polyfit(xx,last,1)
+        p = np.poly1d(coefs)
+        prediction = np.concatenate((prediction,p(np.array(range(50,55)))))
+        
+    return prediction
+
     
     
     
