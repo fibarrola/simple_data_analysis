@@ -124,7 +124,6 @@ app.layout = html.Div(
 
 @app.callback(Output('graph-with-slider', 'figure'), Input('year-slider', 'value'))
 def update_figure(date):
-    print(date)
     to_drop = []
     for ind in range(len(df)):
         if time_ints[ind] < date[0]:

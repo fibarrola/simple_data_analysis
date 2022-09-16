@@ -18,7 +18,7 @@ def clear_timestamps(df):
     for ind in range(len(df)):
         try:
             datetime.strftime(df['Timestamps'][ind], '%Y')
-        except ValueError:
+        except:
             to_drop.append(ind)
             dropped.append(df['Timestamps'][ind])
     df = df.drop(to_drop)
