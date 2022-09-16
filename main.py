@@ -5,10 +5,7 @@ Spyder Editor
 This is a temporary script file.
 """
 
-
-import dash
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
 import plotly.graph_objects as go
 import pickle
@@ -72,7 +69,7 @@ The data is observed to have a periodicity of about '''+str(period//60)+''' hour
 
 # Generate graphics
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app = Dash(__name__, external_stylesheets=external_stylesheets)
 
 my_marks = {}
 for ind in range(len(df)):
