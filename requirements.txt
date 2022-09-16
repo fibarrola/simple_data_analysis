@@ -2,3 +2,5 @@ dash
 numpy
 pandas
 scikit-learn
+black
+flake8

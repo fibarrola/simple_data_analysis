@@ -6,3 +6,23 @@ Analysis of a time series that contains the following steps:
 - Points of interest: Find local minima and maxima
 - Periodicity: Check auto-corretalion to attest for periodicity.
 - Prediction: Extrapolate the trend into the next two hours.
+
+<br>
+## Installation
+
+```
+source setup.sh
+```
+<br>
+## Usage
+
+```
+make run
+```
+<br>
+## Linting
+
+```
+make pretty
+make lint
+```
