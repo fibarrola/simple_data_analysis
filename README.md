@@ -8,18 +8,21 @@ Analysis of a time series that contains the following steps:
 - Prediction: Extrapolate the trend into the next two hours.
 
 <br>
+
 ## Installation
 
 ```
 source setup.sh
 ```
 <br>
+
 ## Usage
 
 ```
 make run
 ```
 <br>
+
 ## Linting
 
 ```
