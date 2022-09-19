@@ -3,3 +3,6 @@ credentials/
 .DS_Store
 .env
 venv/
+myproject.egg-info/
+dist/
+build/
