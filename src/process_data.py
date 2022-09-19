@@ -88,7 +88,7 @@ report = (
         of the day.'''
     ),
 )
-        
+
 
 data = {
     'df': df,

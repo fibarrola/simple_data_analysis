@@ -12,9 +12,12 @@ from datetime import datetime
 from src.process_data import data
 
 corr_fig = go.Figure()
-corr_fig.add_trace(go.Scatter(x=data['times'], y=data['auto_correlation'], name='Autocorrelation'))
-corr_fig.update_layout(title='Autocorrelation', height=300, margin=dict(l=20, r=20, t=50, b=20))
-
+corr_fig.add_trace(
+    go.Scatter(x=data['times'], y=data['auto_correlation'], name='Autocorrelation')
+)
+corr_fig.update_layout(
+    title='Autocorrelation', height=300, margin=dict(l=20, r=20, t=50, b=20)
+)
 
 
 # Generate graphics
@@ -29,36 +32,51 @@ for ind in range(len(data['df'])):
             data['df']['Timestamps'][ind], '%Y-%m-%d, %H:%M'
         )
 
-app.layout = html.Div([
-    html.H1(children='Data Visualization',  style ={'padding-left':40}),
-    html.P(
-        children='''
+app.layout = html.Div(
+    [
+        html.H1(children='Data Visualization', style={'padding-left': 40}),
+        html.P(
+            children='''
             Analysis of unknown data. The datapoints considered to be outliers are
             highlighted and the overall trend is shown, along with a prediction
             for the next two hours. This is a blind analysis, given that the origin of the data
             is unknown, as well as what the displayed values represent.
-        ''', 
-    style ={'padding-left':40}
-    ),
-    html.Div(children = [
-        html.H4(children = ['Visualization of Data from file'], style={'padding-left':40, 'padding-top':40}),
-        html.P(children = ['(Click and drag to zoom. Double click to zoom back).'], style={'padding-left':40}),
-        dcc.Graph(id='graph-with-slider'),
-    ]),
-    html.Div(
-        children = [dcc.RangeSlider(
-            id='year-slider',
-            min=data['time_ints'][0],
-            max=data['time_ints'][-1],
-            marks=my_marks,
-            step=600,
-            value=[data['time_ints'][0], data['time_ints'][-1]],
-        ),],
-        style={'padding-left': '5%', 'padding-right': '3%'},
-    ),
-    dcc.Graph(id='autocorrelation', figure=corr_fig),
-    html.Div(children=data['report'], style ={'padding-left':40, 'padding-top':40, 'padding-bottom':40}),
-])
+        ''',
+            style={'padding-left': 40},
+        ),
+        html.Div(
+            children=[
+                html.H4(
+                    children=['Visualization of Data from file'],
+                    style={'padding-left': 40, 'padding-top': 40},
+                ),
+                html.P(
+                    children=['(Click and drag to zoom. Double click to zoom back).'],
+                    style={'padding-left': 40},
+                ),
+                dcc.Graph(id='graph-with-slider'),
+            ]
+        ),
+        html.Div(
+            children=[
+                dcc.RangeSlider(
+                    id='year-slider',
+                    min=data['time_ints'][0],
+                    max=data['time_ints'][-1],
+                    marks=my_marks,
+                    step=600,
+                    value=[data['time_ints'][0], data['time_ints'][-1]],
+                ),
+            ],
+            style={'padding-left': '5%', 'padding-right': '3%'},
+        ),
+        dcc.Graph(id='autocorrelation', figure=corr_fig),
+        html.Div(
+            children=data['report'],
+            style={'padding-left': 40, 'padding-top': 40, 'padding-bottom': 40},
+        ),
+    ]
+)
 
 
 @app.callback(Output('graph-with-slider', 'figure'), Input('year-slider', 'value'))
@@ -91,13 +109,15 @@ def update_figure(date):
     )
 
     fig.add_trace(
-        go.Scatter(x=data['extended_times'], y=data['prediction'], mode='lines', name='Trend')
+        go.Scatter(
+            x=data['extended_times'], y=data['prediction'], mode='lines', name='Trend'
+        )
     )
 
     fig.update_layout(
         legend={'yanchor': "top", 'y': 0.99, 'xanchor': "right", 'x': 0.99},
         margin=dict(l=20, r=20, t=20, b=50),
-        height=400
+        height=400,
     )
 
     return fig
